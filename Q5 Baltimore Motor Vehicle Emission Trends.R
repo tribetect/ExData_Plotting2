@@ -1,4 +1,4 @@
-#EDA Project 2 Question 4
+#EDA Project 2 Question 5
 
 #----------------------------------------------------------------------------
 #
@@ -9,9 +9,9 @@
 
 #Pre-flight check: if both data files are available in the working directory:
 foundData <- (("summarySCC_PM25.rds" %in% dir()) && #AND
-                ("Source_Classification_Code.rds" %in% dir())) #End of file checks
+              ("Source_Classification_Code.rds" %in% dir())) #End of file checks
 
-#Terminate script, if dataset not found in working directory
+#Terminate script, if datafiles not found in working directory
 error_message = paste0("Terminating Script: Data Files Not Found in Current Working Directory: ", getwd())    
 if(!foundData) { stop(error_message) }
 
