@@ -2,8 +2,11 @@
 
 #----------------------------------------------------------------------------
 #
-#  How have emissions from motor vehicle sources changed 
-#  from 1999-2008 in Baltimore City? 
+#   Compare emissions from motor vehicle sources in Baltimore City 
+#   with emissions from motor vehicle sources in Los Angeles County, California 
+#   (fips == "06037"). 
+#
+#   Which city has seen greater changes over time in motor vehicle emissions?
 #    fips == "24510" 
 #----------------------------------------------------------------------------
 
@@ -15,8 +18,12 @@ foundData <- (("summarySCC_PM25.rds" %in% dir()) && #AND
 error_message = paste0("Terminating Script: Data Files Not Found in Current Working Directory: ", getwd())    
 if(!foundData) { stop(error_message) }
 
+#Preflight
 require(ggplot2)
 require(plyr) #fast subsetting
+#create a plot
+png(file = "plotQ5.png", bg = "transparent", width = 480, height = 480, units = "px")
+
 
 #readRDS() the two files
 NEI <- readRDS("summarySCC_PM25.rds")
@@ -36,32 +43,32 @@ SCC_motor <- trimws(as.character(SCC_motor)) #cleanup for match-and-subset NEI n
 NEI_motor <- mutate(NEI, motorYN = (NEI$SCC %in% SCC_motor)) #tag motor vehicles obervations TRUE/FALSE: 
 #FALSE    TRUE 
 #1020590 5477061
-NEI_motor <- subset(NEI_motor, motorYN == TRUE)  #drop 1.02 million FALSE, keep 5.5mil TRUEs
-NEI_motor_Baltimore <- subset(NEI_motor, fips == 24510) #down to 1515 observations
+NEI_motor_LA <- subset(NEI_motor, motorYN == TRUE & fips == 06037)  #drop 1.02 million FALSE, keep 5.5mil TRUEs
+NEI_motor_Baltimore <- subset(NEI_motor, motorYN == TRUE & fips == 24510) #down to 1515 observations
 
 #Use TApply to calculate Emission sums by year
-annualPM25 <- tapply(NEI_motor_Baltimore$Emission, 
+annualPM25_Baltimore <- tapply(NEI_motor_Baltimore$Emission, 
                      NEI_motor_Baltimore$year, sum, simplify = TRUE)
-#REMOVE?? annualPM25 <- as.data.frame(annualPM25) 
+annualPM25_LA <- tapply(NEI_motor_LA$Emission, 
+                               NEI_motor_LA$year, sum, simplify = TRUE)
 
+annualPM25_Baltimore <- as.data.frame(annualPM25_Baltimore) 
+annualPM25_LA <- as.data.frame(annualPM25_LA) 
 
 
 #CALL qPLOT with linear model regression lines
 #
-# setup the base plot
-answer5 <- qplot(years, annualPM25, geom = "auto",
-                           xlab = "Years 1999-2008", ylab = "PM2.5 Emissions (Tons)", 
-                           main = "Motor Vehicle Emissions in Baltimore (1999 - 2008)")
+# setup the plot
+
+
 
 # Print to device
-print(answer5)
+print(answer6)
 
 #
 #Add a gray watermark with timestamp to the right border
 
 #Finishup
-#create a plot
-png(file = "plotQ5.png", bg = "transparent", width = 480, height = 480, units = "px")
 dev.off()
 
 #Pending items:

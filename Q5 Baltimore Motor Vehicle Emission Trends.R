@@ -17,6 +17,8 @@ if(!foundData) { stop(error_message) }
 
 require(ggplot2)
 require(plyr) #fast subsetting
+#create a PNG device
+png(file = "plotQ5.png", bg = "transparent", width = 480, height = 480, units = "px")
 
 #readRDS() the two files
 NEI <- readRDS("summarySCC_PM25.rds")
@@ -60,8 +62,7 @@ print(answer5)
 #Add a gray watermark with timestamp to the right border
 
 #Finishup
-#create a plot
-png(file = "plotQ5.png", bg = "transparent", width = 480, height = 480, units = "px")
+
 dev.off()
 
 #Pending items:
