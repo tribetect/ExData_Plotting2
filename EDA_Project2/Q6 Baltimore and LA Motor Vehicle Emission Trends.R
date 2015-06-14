@@ -42,26 +42,35 @@ NEI_motor <- mutate(NEI, motorYN = (NEI$SCC %in% SCC_motor)) #tag motor vehicles
 #FALSE    TRUE 
 #1020590 5477061
 
-NEI_motor_Baltimore <- subset(NEI_motor, fips == 24510 & motorYN == TRUE) 
-#down to 1515 observations; drop 1.02 million FALSE, keep 5.5mil TRUEs, then subset Baltimore
-NEI_motor_LA <- subset(NEI_motor, fips == 06037 & motorYN == TRUE) 
+NEI_motor_Baltimore <- subset(NEI_motor, fips == "24510" & motorYN == TRUE) 
+#down to 1515 observations for Baltimore
+NEI_motor_LA <- subset(NEI_motor, fips == "06037" & motorYN == TRUE) 
+#down to 1515 observations for LA 
+
+NEI_motor <- rbind(NEI_motor_Baltimore, NEI_motor_LA)
 
 #Use TApply to calculate Emission sums by year
-annualPM25 <- tapply(NEI_motor_Baltimore$Emission, 
+annualPM25_Baltimore <- tapply(NEI_motor_Baltimore$Emission, 
                      NEI_motor_Baltimore$year, sum, simplify = TRUE) 
-annualPM25 <- as.data.frame(annualPM25)#Y for plot
+annualPM25_Baltimore <- as.data.frame(annualPM25_Baltimore)#Y for plot
+annualPM25_LA <- tapply(NEI_motor_LA$Emission, 
+                               NEI_motor_LA$year, sum, simplify = TRUE) 
+annualPM25_LA <- as.data.frame(annualPM25_LA)#Y for plot
+
+annualPM25 <- cbind(annualPM25_LA, annualPM25_Baltimore)
 years <- as.integer(dimnames(annualPM25)[[1]]) #X for plot
+annualPM25 <- cbind(annualPM25, years)
+rownames(annualPM25) <- NULL
+colnames(annualPM25) <- c("LA", "Baltimore", "year")
 
-#GGPlot object prep
-result <- ggplot(data = annualPM25, mapping = aes(factor(years), annualPM25, group = 1))
 
-#visualize quantities through point sizes
-sizes <- as.integer(annualPM25[,1]/20)
-
-#"Paint" the visualization
-result <- result + geom_point(color = sizes, size = sizes)+geom_line()
-result <- result + labs(x = "Year", y = "Emissions (Tons of PM25)", title = "Baltimore Motor Vehicle Emissions (1999 - 2008)")
-result <- result + geom_text(aes(label=as.integer(annualPM25)),hjust=-1, vjust=1)
+#GGPlot object prep #"Paint" the visualization
+resultBaltimore <- ggplot(data = annualPM25, mapping = aes(x = years, y = annualPM25$Baltimore))
+resultBaltimore <- resultBaltimore + geom_point(size = 7) + geom_smooth(method = "lm", se = FALSE, size = 2, col = "blue")
+result <- resultBaltimore + geom_point(size = 7, mapping = aes(x = years, y = annualPM25$LA))
+result <- result + geom_smooth(method = "lm", se = FALSE, size = 2, col = "red",mapping = aes(x = years, y = annualPM25$LA) )
+result <- result + labs(x = "Year", y = "Emissions log(Tons of PM25)", title = "Q6. Motor Vehicle Emissions LA (Red) vs. Baltimore (Blue)")
+#result <- result + geom_text(aes(label=as.integer(annualPM25)),hjust=-1, vjust=1)
 
 print(result)
 
