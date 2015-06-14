@@ -18,7 +18,7 @@ if(!foundData) { stop(error_message) }
 require(ggplot2)
 require(plyr) #fast subsetting
 #create a PNG device
-#png(file = "plotQ5-3.png", bg = "transparent", width = 480, height = 480, units = "px")
+png(file = "plotQ5.png", bg = "transparent", width = 480, height = 480, units = "px")
 
 #readRDS() the two files
 NEI <- readRDS("summarySCC_PM25.rds")
@@ -49,19 +49,21 @@ annualPM25 <- as.data.frame(annualPM25)#Y for plot
 years <- as.integer(dimnames(annualPM25)[[1]]) #X for plot
 
 #GGPlot object prep
-g <- ggplot(data = annualPM25, mapping = aes(factor(years), annualPM25))
+result <- ggplot(data = annualPM25, mapping = aes(factor(years), annualPM25, group = 1))
+
+#visualize quantities through point sizes
+sizes <- as.integer(annualPM25[,1]/20)
 
 #"Paint" the visualization
-g+geom_point(color = "blue", size = 6)+geom_line() + 
-  labs(x = "Year", y = "Emissions (Tons of PM25)") +  
-  labs(title = "Baltimore Motor Vehicle Emissions (1999 - 2008)")
+result <- result + geom_point(color = sizes, size = sizes)+geom_line()
+result <- result + labs(x = "Year", y = "Emissions (Tons of PM25)", title = "Baltimore Motor Vehicle Emissions (1999 - 2008)")
+result <- result + geom_text(aes(label=as.integer(annualPM25)),hjust=-1, vjust=1)
 
-#
-#Add a gray watermark with timestamp to the right border
+print(result)
 
 #Finishup
 
-#dev.off()
+dev.off()
 
 #Pending items:
 
