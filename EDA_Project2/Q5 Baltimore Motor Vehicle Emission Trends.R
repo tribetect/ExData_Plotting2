@@ -18,7 +18,7 @@ if(!foundData) { stop(error_message) }
 require(ggplot2)
 require(plyr) #fast subsetting
 #create a PNG device
-png(file = "plotQ5.png", bg = "transparent", width = 480, height = 480, units = "px")
+png(file = "plotQ5-2.png", bg = "transparent", width = 480, height = 480, units = "px")
 
 #readRDS() the two files
 NEI <- readRDS("summarySCC_PM25.rds")
@@ -28,7 +28,7 @@ SCC <- readRDS("Source_Classification_Code.rds")
 motorIndex <- grep("Onroad", 
                    SCC$Data.Category, 
                    ignore.case = TRUE) 
-                  #Motor vehicle source search index, 1709 of 11,717 observations in SCC
+                  #Motor vehicle source search index, 1709 of 11,717 records in SCC
 
 SCC_motor <- SCC[motorIndex,]$SCC #SCC codes (factor vector) for motor vehicles
 SCC_motor <- trimws(as.character(SCC_motor)) #cleanup for match-and-subset NEI next 
@@ -38,25 +38,23 @@ SCC_motor <- trimws(as.character(SCC_motor)) #cleanup for match-and-subset NEI n
 NEI_motor <- mutate(NEI, motorYN = (NEI$SCC %in% SCC_motor)) #tag motor vehicles obervations TRUE/FALSE: 
 #FALSE    TRUE 
 #1020590 5477061
-NEI_motor <- subset(NEI_motor, motorYN == TRUE)  #drop 1.02 million FALSE, keep 5.5mil TRUEs
-NEI_motor_Baltimore <- subset(NEI_motor, fips == 24510) #down to 1515 observations
+
+NEI_motor_Baltimore <- subset(NEI_motor, fips == 24510 & motorYN == TRUE) 
+#down to 1515 observations; drop 1.02 million FALSE, keep 5.5mil TRUEs, then subset Baltimore
 
 #Use TApply to calculate Emission sums by year
 annualPM25 <- tapply(NEI_motor_Baltimore$Emission, 
-                     NEI_motor_Baltimore$year, sum, simplify = TRUE)
-#REMOVE?? annualPM25 <- as.data.frame(annualPM25) 
+                     NEI_motor_Baltimore$year, sum, simplify = TRUE) 
+annualPM25 <- as.data.frame(annualPM25)#Y for plot
+years <- as.integer(dimnames(annualPM25)[[1]]) #X for plot
 
+#GGPlot object prep
+g <- ggplot(data = annualPM25, mapping = aes(years, annualPM25))
 
-
-#CALL qPLOT with linear model regression lines
-#
-# setup the base plot
-answer5 <- qplot(years, annualPM25, geom = "auto",
-                           xlab = "Years 1999-2008", ylab = "PM2.5 Emissions (Tons)", 
-                           main = "Motor Vehicle Emissions in Baltimore (1999 - 2008)")
-
-# Print to device
-print(answer5)
+#"Paint" the visualization
+g+geom_point(color = "blue", size = 6)+geom_line() + 
+  labs(x = "Year", y = "Emissions (Tons of PM25)") +  
+  labs(title = "Baltimore Motor Vehicle Emissions")
 
 #
 #Add a gray watermark with timestamp to the right border
